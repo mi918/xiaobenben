@@ -1,0 +1,30 @@
+【我的小本本 · 联网版安装步骤】全部免费，约 15 分钟
+
+一、建 Firebase（存数据的云端）
+1. 打开 console.firebase.google.com，用 Google 账号登录 → 添加项目 → 名字随意（如 xiaobenben）→ 一路继续（Google Analytics 可关）。
+2. 左边「构建」→ Authentication → 开始 → 登录方法 → 启用「Google」（选你的邮箱为支持邮箱）→ 保存；顺便也可启用「电子邮件地址/密码」当备用。
+3. 左边「构建」→ Firestore Database → 创建数据库 → 选离你近的地区 → 以「生产模式」启动。
+4. Firestore →「规则」页，把里面全部内容换成本文件夹里 firestore.rules 的内容 → 发布。
+5. 项目设置（左上齿轮）→「您的应用」→ 点网页图标 </> → 起个名 → 注册应用 → 复制里面的 firebaseConfig {…} 内容。
+6. 用记事本打开 firebase-config.js，把 YOUR_… 那几行换成复制来的值，保存。
+
+二、放到 GitHub Pages（让手机能打开的网址）
+1. github.com 注册/登录 → New repository → 名字 xiaobenben → Public → Create。
+2. 点 "uploading an existing file"，把本文件夹里的所有文件（含 .nojekyll）拖进去 → Commit changes。
+3. Settings → Pages → Source 选 Deploy from a branch → Branch 选 main / (root) → Save。等 1~2 分钟，页面顶部出现网址 https://你的用户名.github.io/xiaobenben/
+4. 回 Firebase → Authentication → 设置 → 已获授权的网域 → 添加网域：你的用户名.github.io
+
+三、装到手机
+- iPhone：用 Safari 打开网址 → 分享 → 添加到主屏幕。
+- 安卓：Chrome 打开网址 → 菜单 → 安装应用/添加到主屏幕。
+打开后没有任何浏览器栏。点「用 Google 登录」，之后手机、电脑用同一个 Google 账号登录，数据自动同步，断网也能看、联网后自动补传。
+
+四、搬旧数据
+在 Claude 里的旧版：设置 → 导出备份；新版：设置 → 导入。
+
+
+
+五、开启 AI 助手（Gemini，有免费额度）
+1. 打开 aistudio.google.com/apikey，用 Google 账号登录 → Create API key → 复制。
+2. 在小本本里点桌面上的「助手」，第一次会让你粘贴密钥；之后也可在「设置」→「AI 助手密钥」更换或删除。
+密钥只存在你这台设备的浏览器里，不会上传；换手机要再填一次。不要把密钥发给别人。
