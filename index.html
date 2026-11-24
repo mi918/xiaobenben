@@ -600,7 +600,7 @@
     <button type="button" class="mrow" id="m-import"><b>导入备份</b><span>选择之前导出的备份文件，同一张便签会被覆盖</span></button>
     <input type="file" id="m-file" accept=".json,application/json" hidden>
     <button type="button" class="mrow" id="m-lock"><b id="m-lock-t">设置密码锁</b><span>打开时需要输入 4 位数字</span></button>
-    <button type="button" class="mrow" id="m-key"><b>AI 助手密钥</b><span>Gemini API 密钥，只存在这台设备</span></button>
+    <button type="button" class="mrow" id="m-key"><b>AI 助手密钥（可选）</b><span>一般不用填；填了就改用你自己的 Gemini 密钥</span></button>
     <button type="button" class="mrow" id="m-out" hidden><b>退出登录</b><span id="m-out-t"></span></button>
     <button type="button" class="mrow" id="m-lock-now" hidden><b>立即锁定</b><span>马上回到输入密码的界面</span></button>
     <p class="mnote">密码锁只用来防别人随手翻看，不会加密保存的内容。</p>
@@ -1419,6 +1419,7 @@
     return { text: text, truncated: false };
   }
   var GK = 'xiaobenben-gk', GMODEL = 'gemini-flash-latest';
+  function fbReady() { var c = window.FIREBASE_CONFIG; return !!(c && c.apiKey && c.projectId && !/YOUR_/.test(c.apiKey)); }
   function getKey() { try { return localStorage.getItem(GK) || ''; } catch (e) { return ''; } }
   function setKey(force) {
     var cur = getKey();
@@ -1435,7 +1436,7 @@
     return o;
   }
   async function geminiFn(input, opts) {
-    var key = getKey(); if (!key) { var e0 = new Error('no key'); e0.code = 'no_key'; throw e0; }
+    var viaFb = fbReady() && !getKey(), key = viaFb ? window.FIREBASE_CONFIG.apiKey : getKey(); if (!key) { var e0 = new Error('no key'); e0.code = 'no_key'; throw e0; }
     var sys = '', contents = [];
     input.forEach(function (m, n) {
       if (n === 0 && m.role === 'user' && /你是「小本本」/.test(m.content)) { sys = m.content; return; }
@@ -1450,9 +1451,9 @@
     for (var round = 0; round < 5; round++) {
       var res;
       try {
-        res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + GMODEL + ':generateContent', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key }, body: JSON.stringify(body), signal: opts.signal });
+        res = await fetch(viaFb ? 'https://firebasevertexai.googleapis.com/v1beta/projects/' + window.FIREBASE_CONFIG.projectId + '/models/' + (window.AI_MODEL || 'gemini-2.5-flash') + ':generateContent' : 'https://generativelanguage.googleapis.com/v1beta/models/' + GMODEL + ':generateContent', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key }, body: JSON.stringify(body), signal: opts.signal });
       } catch (e) { var ce = new Error('net'); ce.code = (e && e.name === 'AbortError') ? 'cancelled' : 'network'; ce.text = text; throw ce; }
-      if (!res.ok) { var he = new Error('http ' + res.status); he.code = res.status === 429 ? 'rate_limited' : (res.status === 400 || res.status === 403) ? 'bad_key' : 'network'; throw he; }
+      if (!res.ok) { var he = new Error('http ' + res.status); he.code = res.status === 429 ? 'rate_limited' : viaFb && (res.status === 403 || res.status === 404 || res.status === 400) ? 'ai_off' : (res.status === 400 || res.status === 403) ? 'bad_key' : 'network'; throw he; }
       var data = await res.json(), cand = data.candidates && data.candidates[0];
       if (!cand || !cand.content || !cand.content.parts) { var ee = new Error('empty'); ee.code = (data.promptFeedback && data.promptFeedback.blockReason) ? 'refused' : 'empty_completion'; throw ee; }
       var parts = cand.content.parts, calls = parts.filter(function (x) { return x.functionCall; });
@@ -1512,6 +1513,7 @@
   }
   function errText(code) {
     return code === 'rate_limited' ? '问得有点快或用量到上限了，过一会儿再试。' :
+      code === 'ai_off' ? '助手还没开通：到 Firebase 控制台的「AI Logic」点「开始使用」，选 Gemini Developer API，并等一两分钟。' :
       code === 'no_key' ? '还没填 Gemini 密钥，点右上角菜单里的「AI 助手密钥」。' :
       code === 'bad_key' ? '密钥不对或没权限，请到菜单里的「AI 助手密钥」重新填。' :
       code === 'network' ? '网络不通，连上网再试。' :
@@ -1559,7 +1561,7 @@
   }
   function openChat() {
     if (!smp) return;
-    if (!getKey() && !setKey()) return;
+    if (!fbReady() && !getKey() && !setKey()) return;
     if (!msgsBox().children.length) renderEmpty();
     document.documentElement.classList.add('chat-open');
     $('#scrim').hidden = false; chat.style.translate = ''; chat.hidden = false; raise(chat); setTimeout(function () { toBottom(); $('#ch-in').focus({ preventScroll: true }); }, 50);

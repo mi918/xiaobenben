@@ -1,9 +1,12 @@
 // 把 Firebase 控制台里给你的配置粘贴到下面（只需替换花括号里的内容）
 window.FIREBASE_CONFIG = {
-  apiKey: "AIzaSyAO6iyPQSr_B4yvdfcYz8Oi6YNjbIJNhts",
-  authDomain: "littlenote-d7e8a.firebaseapp.com",
-  projectId: "littlenote-d7e8a",
-  storageBucket: "littlenote-d7e8a.firebasestorage.app",
-  messagingSenderId: "199245163899",
-  appId: "1:199245163899:web:afbdaecb7e33a00290a1de"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "000000000000",
+  appId: "1:000000000000:web:0000000000000000"
 };
+
+// AI 助手使用的模型（一般不用改）
+window.AI_MODEL = "gemini-2.5-flash";
